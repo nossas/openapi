@@ -61,14 +61,13 @@ class ActionSerializerMixin(serializers.ModelSerializer):
 
     def create(self, validated_data):
         person_data = validated_data.pop('person')
-        
         ## TODO: Melhorar serialização de objetos
-        # targets = validated_data.pop('targets')
+        targets = validated_data.pop('targets')
         
         instance = self.Meta.model.objects.create(**validated_data, **person_data, created_date=now())
 
         ## TODO: Melhorar serialização de objetos
-        # if hasattr(instance, 'targets') and targets:
-        #     instance.targets.set(targets)
+        if hasattr(instance, 'targets') and targets:
+            instance.targets.set(targets)
 
         return instance
