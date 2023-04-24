@@ -1,0 +1,10 @@
+django
+django-environ
+psycopg2-binary
+django-appconf
+# Action Network Integration
+requests
+# API
+djangorestframework
+django-filter
+markdown

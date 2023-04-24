@@ -1,0 +1,8 @@
+-r base.txt
+requests_mock
+model_bakery
+pytest
+pytest-cov
+pytest-django
+ipdb
+ipython
