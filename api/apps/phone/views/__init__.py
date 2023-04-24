@@ -5,10 +5,8 @@ from apps.actionnetwork.views import ActionCreateApiView
 from apps.actionnetwork.serializers import ActionSerializerMixin
 
 from ..models import PhonePressure
+from ..conf import settings
 from .utils import create_twilio_call
-
-
-ENDPOINT = "https://0461-2804-14d-c882-9ace-441e-cd1b-51c5-fbd3.ngrok-free.app"
 
 
 class PhonePressureSerializer(ActionSerializerMixin):
@@ -23,7 +21,7 @@ class PhonePressureCreateAPIView(ActionCreateApiView):
         call = create_twilio_call(
             call_from=instance.person.phone_numbers.first().number,
             call_to=instance.targets.first().phone_number,
-            endpoint=ENDPOINT
+            endpoint=settings.TWILIO_WEBHOOK_URL
         )
 
         return Response(

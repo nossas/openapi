@@ -8,6 +8,7 @@ class ZendeskConf(AppConf):
     ACCOUNT_SID = None
     AUTH_TOKEN = None
     PHONE_NUMBER = None
+    WEBHOOK_URL = None
 
     class Meta:
         prefix = 'twilio'

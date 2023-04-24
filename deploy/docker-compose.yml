@@ -16,6 +16,7 @@ services:
       - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-True}
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
+      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL:-https://openapi.staging.bonde.org}
     labels:
       - traefik.http.services.openapi.loadbalancer.server.port=80
       - traefik.enable=true

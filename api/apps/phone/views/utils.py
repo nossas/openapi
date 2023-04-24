@@ -18,15 +18,16 @@ def create_twilio_call(call_from, call_to, endpoint):
         status="created", from_number=call_from, to_number=call_to
     )
 
-    url = f"{endpoint}{reverse('call_fowarding', kwargs={'call_id': call.id})}"
+    url_fowarding = f"{endpoint}{reverse('call_fowarding', kwargs={'call_id': call.id})}"
     
     url_tracking = f"{endpoint}{reverse('call_tracking', kwargs={'call_id': call.id})}"
     
     twilio_call = client.calls.create(
-        url=url,
+        url=url_fowarding,
         to=call_from,
         from_=settings.TWILIO_PHONE_NUMBER,
         method="POST",
+        # Callback configuration
         status_callback=url_tracking,
         status_callback_method="POST",
         status_callback_event=["initiated", "ringing", "answered", "completed"],
