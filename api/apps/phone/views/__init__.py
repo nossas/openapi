@@ -8,7 +8,7 @@ from ..models import PhonePressure
 from .utils import create_twilio_call
 
 
-ENDPOINT = "https://cede-2804-14d-c882-9ace-c345-e37f-35e1-a3f6.ngrok-free.app"
+ENDPOINT = "https://0461-2804-14d-c882-9ace-441e-cd1b-51c5-fbd3.ngrok-free.app"
 
 
 class PhonePressureSerializer(ActionSerializerMixin):

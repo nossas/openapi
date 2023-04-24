@@ -159,6 +159,12 @@ class ActionRecordManager(models.Manager):
             raise InvalidInstanceModelException(
                 "Signature model request petitions campaign"
             )
+        
+        if self.model.__name__ == "Outreach" and campaign.resource_name != "advocacy_campaigns":
+            raise InvalidInstanceModelException(
+                "Outreach model request advocacy campaign"
+            )
+
 
         # Instance of person
         person = kwargs.get("person")
@@ -265,6 +271,8 @@ class ActionRecordManager(models.Manager):
             return "signatures"
         elif issubclass(self.model, DonationInterface):
             return "donations"
+        elif issubclass(self.model, OutreachInterface):
+            return "outreaches"
         else:
             raise InvalidInstanceModelException(
                 f"{self.model.__name__} should be implement an interface"

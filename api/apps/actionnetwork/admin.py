@@ -92,7 +92,9 @@ class ActionAdmin(admin.ModelAdmin):
 
     @admin.display(description="Person UUID")
     def person__uuid(self, obj):
-        return obj.api_response_json["action_network:person_id"]
+        # import ipdb;ipdb.set_trace()
+        # return obj.api_response_json["_links"]["osdi:person"].split("/")[-1]
+        return "asdijaid"
 
     @admin.display(description="Action UUID")
     def action__uuid(self, obj):
