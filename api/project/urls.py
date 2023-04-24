@@ -25,7 +25,7 @@ from apps.phone.views import PhonePressureCreateAPIView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls")),
-    path("api/phone/", PhonePressureCreateAPIView.as_view(), name="phone"),
+    path("api/campaigns/<int:campaign_id>/phone/", PhonePressureCreateAPIView.as_view(), name="phone"),
     path("api/phone/call/", include("apps.phone.urls")),
     path('api/campaigns/', CampaignAPIListView.as_view(), name="campaigns"),
     path('api/groups/', UsersGroupListAPIView.as_view(), name="usersgroups"),
