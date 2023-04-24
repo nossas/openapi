@@ -1,4 +1,4 @@
-from .settings import *
+from .development import *
 
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
 
