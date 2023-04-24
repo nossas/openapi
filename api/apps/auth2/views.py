@@ -4,8 +4,8 @@ from rest_framework import serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 
-from bonde.actionnetwork.models import Campaign
-from bonde.openapi.actions.views import CampaignSerializer
+from apps.actionnetwork.models import Campaign
+from apps.actionnetwork.serializers import CampaignSerializer
 
 from .models import UsersGroup
 

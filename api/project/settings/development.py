@@ -27,6 +27,9 @@ env = environ.Env(
         str,
         "django-insecure-yv#oj$@m!=7(y@pj==vw5$_)s($%(a_0#m8uv6$8^(m9d!bz2g",
     ),
+    TWILIO_ACCOUNT_SID=(str, 'DEFAULT'),
+    TWILIO_AUTH_TOKEN=(str, 'DEFAULT'),
+    TWILIO_PHONE_NUMBER=(str, 'DEFAULT')
 )
 
 environ.Env.read_env()
@@ -57,9 +60,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    "rest_framework",
     # My Apps
     "apps.actionnetwork",
     "apps.auth2",
+    "apps.phone",
 ]
 
 MIDDLEWARE = [
@@ -160,3 +166,12 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Phone apps configuration
+
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+
+TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')

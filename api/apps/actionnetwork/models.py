@@ -41,9 +41,10 @@ class CampaignManager(models.Manager):
 
 class Campaign(models.Model):
     RESOURCES = (
-        ("forms", "Forms"),
+        ("forms", "Submissions"),
         ("fundraising_pages", "Donations"),
-        ("petitions", "Petitions"),
+        ("petitions", "Signatures"),
+        ("advocacy_campaigns", "Outreaches"),
     )
 
     title = models.CharField(verbose_name="Title of campaign", max_length=200)
@@ -376,5 +377,10 @@ class SignatureInterface(ActionRecordModel):
 class DonationInterface(ActionRecordModel):
     amount = models.DecimalField(verbose_name="Amount", decimal_places=2, max_digits=10)
 
+    class Meta:
+        abstract = True
+
+
+class OutreachInterface(ActionRecordModel):
     class Meta:
         abstract = True

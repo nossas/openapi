@@ -15,8 +15,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+from apps.actionnetwork.views import CampaignAPIListView
+from apps.auth2.views import UsersGroupListAPIView
+from apps.phone.views import PhonePressureCreateAPIView
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("api/phone/", PhonePressureCreateAPIView.as_view(), name="phone"),
+    path("api/phone/call/", include("apps.phone.urls")),
+    path('api/campaigns/', CampaignAPIListView.as_view(), name="campaigns"),
+    path('api/groups/', UsersGroupListAPIView.as_view(), name="usersgroups"),
 ]
