@@ -3,6 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AuthOpenApiConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.auth2'
-    label = 'auth2'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.auth2"
+    label = "auth2"

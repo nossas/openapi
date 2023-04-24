@@ -4,7 +4,12 @@ import requests_mock
 from model_bakery import baker
 from django.conf import settings
 
-from apps.actionnetwork.models import Campaign, Person, ActionRecordModel, ActionRecordManager
+from apps.actionnetwork.models import (
+    Campaign,
+    Person,
+    ActionRecordModel,
+    ActionRecordManager,
+)
 from apps.actionnetwork.exceptions import InvalidRequestAPIException
 
 

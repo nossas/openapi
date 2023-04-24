@@ -176,7 +176,7 @@ class ActionRecordManager(models.Manager):
         email_address = kwargs.get("email_address")
         if email_address:
             del kwargs["email_address"]
-        
+
         phone_number = kwargs.get("phone_number")
         if phone_number:
             del kwargs["phone_number"]
@@ -186,8 +186,8 @@ class ActionRecordManager(models.Manager):
 
         elif not person and (email_address or phone_number):
             person = Person.objects.filter(
-                Q(email_addresses__address=email_address) |
-                Q(phone_numbers__number=phone_number)
+                Q(email_addresses__address=email_address)
+                | Q(phone_numbers__number=phone_number)
             ).first()
 
         if not person:

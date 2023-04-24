@@ -7,18 +7,16 @@ from .models import (
     EmailAddress,
     PhoneNumber,
     PostalAddress,
-    CustomField
+    CustomField,
 )
 
 
 class ReadOnlyMixin(object):
-
     def has_change_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
         return False
-
 
 
 class EmailAddressInline(admin.TabularInline):
@@ -28,7 +26,7 @@ class EmailAddressInline(admin.TabularInline):
 
 class PhoneNumberInline(ReadOnlyMixin, admin.TabularInline):
     model = PhoneNumber
-    readonly_fields = ('number', )
+    readonly_fields = ("number",)
 
 
 class PostalAddressInline(ReadOnlyMixin, admin.StackedInline):
@@ -40,29 +38,32 @@ class CustomFieldInline(admin.TabularInline):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('email_address', 'full_name')
+    list_display = ("email_address", "full_name")
     inlines = [
         EmailAddressInline,
         PhoneNumberInline,
         PostalAddressInline,
-        CustomFieldInline
+        CustomFieldInline,
     ]
-    search_fields = ('given_name', 'email_addresses__address', )
+    search_fields = (
+        "given_name",
+        "email_addresses__address",
+    )
 
-    @admin.display(ordering='given_name', description='Person name')
+    @admin.display(ordering="given_name", description="Person name")
     def full_name(self, obj):
         return obj.given_name + " " + obj.family_name
 
-    @admin.display(ordering='email_addresses__address', description='Email')
+    @admin.display(ordering="email_addresses__address", description="Email")
     def email_address(self, obj):
         return obj.email_addresses.first()
 
 
 class CampaignAdmin(admin.ModelAdmin):
-    list_display = ('title', 'resource_name')
-    fields = ('title', 'action_group', 'resource_name', 'api_response_json')
-    readonly_fields = ('api_response_json', )
-    
+    list_display = ("title", "resource_name")
+    fields = ("title", "action_group", "resource_name", "api_response_json")
+    readonly_fields = ("api_response_json",)
+
     def save_model(self, request, obj, form, change):
         if not change:
             return Campaign.objects.create(**form.cleaned_data)
@@ -70,46 +71,55 @@ class CampaignAdmin(admin.ModelAdmin):
 
 
 class ActionAdmin(admin.ModelAdmin):
-    list_display = ('action__uuid', 'person__full_name', 'person__uuid', 'campaign__title')
-    readonly_fields = ('api_response_json', )
+    list_display = (
+        "action__uuid",
+        "person__full_name",
+        "person__uuid",
+        "campaign__title",
+    )
+    readonly_fields = ("api_response_json",)
 
-    @admin.display(ordering='person__given_name', description='Person name')
+    @admin.display(ordering="person__given_name", description="Person name")
     def person__full_name(self, obj):
         if obj.person.family_name:
             return obj.person.given_name + " " + obj.person.family_name
-        
+
         return obj.person.given_name
 
-    @admin.display(ordering='campaign__title', description='Campaign title')
+    @admin.display(ordering="campaign__title", description="Campaign title")
     def campaign__title(self, obj):
         return obj.campaign.title
 
-    @admin.display(description='Person UUID')
+    @admin.display(description="Person UUID")
     def person__uuid(self, obj):
-        return obj.api_response_json['action_network:person_id']
-    
-    @admin.display(description='Action UUID')
+        return obj.api_response_json["action_network:person_id"]
+
+    @admin.display(description="Action UUID")
     def action__uuid(self, obj):
         return obj.uuid()
 
     # def has_add_permission(self, request, obj=None):
     #     return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
         return False
-    
+
     def save_model(self, request, obj, form, change):
         if not change:
             return self.model.objects.create(**form.cleaned_data)
-        
+
         return super().save_model(request, obj, form, change)
 
 
 class DonationActionAdmin(ActionAdmin):
-    list_display = ActionAdmin.list_display + ('amount', 'created_date', )
+    list_display = ActionAdmin.list_display + (
+        "amount",
+        "created_date",
+    )
+
 
 # Register your models here.
 # admin.site.register(ActionGroup)
