@@ -18,10 +18,12 @@ def create_twilio_call(call_from, call_to, endpoint):
         status="created", from_number=call_from, to_number=call_to
     )
 
-    url_fowarding = f"{endpoint}{reverse('call_fowarding', kwargs={'call_id': call.id})}"
-    
+    url_fowarding = (
+        f"{endpoint}{reverse('call_fowarding', kwargs={'call_id': call.id})}"
+    )
+
     url_tracking = f"{endpoint}{reverse('call_tracking', kwargs={'call_id': call.id})}"
-    
+
     twilio_call = client.calls.create(
         url=url_fowarding,
         to=call_from,
@@ -40,5 +42,5 @@ def create_twilio_call(call_from, call_to, endpoint):
     return {
         "sid": call.sid,
         "status": call.status,
-        "url": reverse("call_status", kwargs={"call_id": call.id}),
+        "url": f"{endpoint}{reverse('call_status', kwargs={'call_id': call.id})}",
     }
