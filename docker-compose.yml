@@ -6,7 +6,7 @@ services:
     build: .
     # map the internal port 80 to port 8000 on the host
     ports:
-      - "8000:80"
+      - "80:80"
     # map the host directory to app (which allows us to see and edit files inside the container)
     # volumes:
     #   - ".:/app:rw"

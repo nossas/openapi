@@ -13,6 +13,7 @@ services:
       - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-project.settings.production}
       - DEBUG=${DEBUG:-False}
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-openapi.bonde.org,openapi.staging.bonde.org}
+      - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-True}
       - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY=${SECRET_KEY}
     labels:
@@ -20,3 +21,7 @@ services:
       - traefik.enable=true
       - traefik.http.routers.openapi.tls=true
       - traefik.http.routers.openapi.tls.certresolver=myresolver
+
+networks:
+  default:
+    name: bonde

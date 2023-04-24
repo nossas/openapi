@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # Setup variables
 env = environ.Env(
     DEBUG=(bool, False),
+    SECURE_SSL_REDIRECT=(bool, False),
     ALLOWED_HOSTS=(list, "*"),
     DATABASE_URL=(str, f'sqlite:///{BASE_DIR / "db.sqlite3"}'),
     SECRET_KEY=(
@@ -45,6 +46,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 if type(ALLOWED_HOSTS) is not list:
     ALLOWED_HOSTS = [ALLOWED_HOSTS]
 
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
 
 # Application definition
 
