@@ -11,4 +11,4 @@ ENV DJANGO_SETTINGS_MODULE=project.settings.production
 
 RUN  python manage.py collectstatic --noinput
 
-CMD uwsgi --http=0.0.0.0:80 --module=project.wsgi --honour-stdin
+CMD uwsgi --http=0.0.0.0:80 --module=project.wsgi --honour-stdin --post-buffering=1
