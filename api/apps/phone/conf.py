@@ -4,10 +4,10 @@ from django.core.exceptions import ImproperlyConfigured
 from appconf import AppConf
 
 
-class ZendeskConf(AppConf):
-    ACCOUNT_SID = None
-    AUTH_TOKEN = None
-    PHONE_NUMBER = None
+class PhoneConf(AppConf):
+    # ACCOUNT_SID = None
+    # AUTH_TOKEN = None
+    # PHONE_NUMBER = None
     WEBHOOK_URL = None
 
     class Meta:

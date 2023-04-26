@@ -1,6 +1,4 @@
 # https://simpleisbetterthancomplex.com/tutorial/2016/07/22/how-to-extend-django-user-model.html
-import uuid
-
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -9,8 +7,6 @@ from django.contrib.auth.models import (
 )
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
-from apps.actionnetwork.models import ActionGroupInterface
 
 
 class UserManager(BaseUserManager):
@@ -43,10 +39,10 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
-        verbose_name=_("email address"), max_length=255, unique=True
+        verbose_name=_("endereço de email"), max_length=255, unique=True
     )
-    first_name = models.CharField(_("first name"), max_length=150, blank=True)
-    last_name = models.CharField(_("last name"), max_length=150, blank=True)
+    first_name = models.CharField(_("primeiro nome"), max_length=150, blank=True)
+    last_name = models.CharField(_("sobrenome"), max_length=150, blank=True)
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
@@ -66,17 +62,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
 
+    class Meta:
+        verbose_name = _("usuário")
+        verbose_name_plural = _("usuários")
+
     def __str__(self):
         return self.email
 
-
-class UsersGroup(ActionGroupInterface):
-    users = models.ManyToManyField(User)
-    token = models.CharField(
-        verbose_name=_("Authentication Token"),
-        help_text=_("Used to authentication OpenAPI"),
-        max_length=85,
-        default=uuid.uuid4,
-        editable=False,
-        unique=True,
-    )

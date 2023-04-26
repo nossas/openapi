@@ -1,21 +1,27 @@
 from django.urls import reverse
 
 from twilio.rest import Client
+from apps.actionnetwork.models import IntegrationOptions
 
 from ..conf import settings
 from ..models import Call
 
 
-client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-
-
-def create_twilio_call(call_from, call_to, endpoint):
+def create_twilio_call(call_from, call_to, endpoint, action_record):
     """
     Create and register a Twilio call
     """
+    twilio_config = action_record.campaign.action_group.integration_set.filter(
+        name=IntegrationOptions.TWILIO
+    ).first()
+
+    client = Client(twilio_config.get("ACCOUNT_SID"), twilio_config.get("AUTH_TOKEN"))
 
     call = Call.objects.create(
-        status="created", from_number=call_from, to_number=call_to
+        status="created",
+        from_number=call_from,
+        to_number=call_to,
+        phone_pressure=action_record,
     )
 
     url_fowarding = (
@@ -27,7 +33,7 @@ def create_twilio_call(call_from, call_to, endpoint):
     twilio_call = client.calls.create(
         url=url_fowarding,
         to=call_from,
-        from_=settings.TWILIO_PHONE_NUMBER,
+        from_=twilio_config.get("PHONE_NUMBER"),
         method="POST",
         # Callback configuration
         status_callback=url_tracking,
@@ -42,5 +48,5 @@ def create_twilio_call(call_from, call_to, endpoint):
     return {
         "sid": call.sid,
         "status": call.status,
-        "url": f"{endpoint}{reverse('call_status', kwargs={'call_id': call.id})}",
+        "url": reverse("call_status", kwargs={"call_id": call.id}),
     }

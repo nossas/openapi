@@ -1,14 +1,14 @@
 from rest_framework import authentication, exceptions
 
-from .models import UsersGroup
+from apps.actionnetwork.models import ActionGroup
 
 
-class UsersGroupAuthentication(authentication.BaseAuthentication):
+class OpenAPIAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         auth_token = request.headers.get('OpenAPI-Token')
 
-        if auth_token and request.method == 'POST':
-            request.openapi_group = UsersGroup.objects.get(token=auth_token)
+        if auth_token:
+            request.openapi_group = ActionGroup.objects.get(openapi_token=auth_token)
             return (None, None)
-        elif request.method != 'POST':
-            raise exceptions.AuthenticationFailed('POST only permitted used OpenAPIToken')
+        
+        raise exceptions.AuthenticationFailed(f'{request.method} only permitted used with OpenAPI-Token headers')

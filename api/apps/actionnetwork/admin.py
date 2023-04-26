@@ -1,13 +1,18 @@
 from django.contrib import admin
 
 from .models import (
-    # ActionGroup,
+    ActionGroup,
     Campaign,
+    CampaignOptions,
     Person,
     EmailAddress,
     PhoneNumber,
     PostalAddress,
     CustomField,
+    Target,
+    TargetGroup,
+    Tag,
+    Integration
 )
 
 
@@ -21,7 +26,7 @@ class ReadOnlyMixin(object):
 
 class EmailAddressInline(admin.TabularInline):
     model = EmailAddress
-    # readonly_fields = ('address', )
+    readonly_fields = ('address', )
 
 
 class PhoneNumberInline(ReadOnlyMixin, admin.TabularInline):
@@ -61,8 +66,14 @@ class PersonAdmin(admin.ModelAdmin):
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ("title", "resource_name")
-    fields = ("title", "action_group", "resource_name", "api_response_json")
-    readonly_fields = ("api_response_json",)
+    fields = ("title", "action_group", "resource_name", "an_response_json")
+    readonly_fields = ("an_response_json",)
+
+    def get_fields(self, request, obj=None):
+        if obj and obj.resource_name == CampaignOptions.OUTREACHES:
+            return self.fields + ('target_groups', )
+        
+        return super().get_fields(request, obj)
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -70,14 +81,14 @@ class CampaignAdmin(admin.ModelAdmin):
         return super().save_model(request, obj, form, change)
 
 
-class ActionAdmin(admin.ModelAdmin):
+class ActionRecordAdmin(admin.ModelAdmin):
     list_display = (
         "action__uuid",
         "person__full_name",
         "person__uuid",
         "campaign__title",
     )
-    readonly_fields = ("api_response_json",)
+    readonly_fields = ("an_response_json",)
 
     @admin.display(ordering="person__given_name", description="Person name")
     def person__full_name(self, obj):
@@ -116,8 +127,8 @@ class ActionAdmin(admin.ModelAdmin):
         return super().save_model(request, obj, form, change)
 
 
-class DonationActionAdmin(ActionAdmin):
-    list_display = ActionAdmin.list_display + (
+class DonationActionAdmin(ActionRecordAdmin):
+    list_display = ActionRecordAdmin.list_display + (
         "amount",
         "created_date",
     )
@@ -131,3 +142,26 @@ admin.site.register(Person, PersonAdmin)
 # admin.site.register(Donation, DonationActionAdmin)
 # admin.site.register(Submission, ActionAdmin)
 # admin.site.register(Signature, ActionAdmin)
+
+class IntegrationInline(admin.StackedInline):
+    model = Integration
+    extra = 0
+
+
+class ActionGroupAdmin(admin.ModelAdmin):
+    fields = ("name", "an_secret_key", "openapi_token", "users")
+    readonly_fields = ("openapi_token", )
+    inlines = [IntegrationInline, ]
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.owner = request.user
+
+        return super().save_model(request, obj, form, change)
+
+admin.site.register(ActionGroup, ActionGroupAdmin)
+
+
+admin.site.register(Tag)
+admin.site.register(Target)
+admin.site.register(TargetGroup)

@@ -3,15 +3,12 @@ import json
 
 from django.db import models
 from django.db.models import Q
-from django.urls import reverse
-from django.utils.timezone import now
+from django.utils.translation import gettext_lazy as _
 
-from .conf import settings
-from .exceptions import (
-    InvalidRequestAPIException,
-    FieldException,
-    InvalidInstanceModelException,
-)
+from ..exceptions import InvalidRequestAPIException, InvalidInstanceModelException, FieldException
+
+from .peoples import Person, EmailAddress, PhoneNumber, PostalAddress
+from .details import ActionGroup, TargetGroup
 
 
 class CampaignManager(models.Manager):
@@ -24,7 +21,7 @@ class CampaignManager(models.Manager):
         response = requests.post(
             f"https://actionnetwork.org/api/v2/{resource_name}/",
             data={"title": title, "origin_system": "Bonde Actions API"},
-            headers={"OSDI-API-Token": action_group.api_secret_key},
+            headers={"OSDI-API-Token": action_group.an_secret_key},
         )
 
         if response.status_code == 200:
@@ -33,110 +30,46 @@ class CampaignManager(models.Manager):
                 title=title,
                 resource_name=resource_name,
                 action_group=action_group,
-                api_response_json=response.json(),
+                an_response_json=response.json(),
             )
 
         raise InvalidRequestAPIException(response.text)
 
 
-class Campaign(models.Model):
-    RESOURCES = (
-        ("forms", "Submissions"),
-        ("fundraising_pages", "Donations"),
-        ("petitions", "Signatures"),
-        ("advocacy_campaigns", "Outreaches"),
-    )
+class CampaignOptions(models.TextChoices):
+    SUBMISSIONS = "forms", _("Formulário")
+    DONATIONS = "fundraising_pages", _("Doação")
+    SIGNATURES = "petitions", _("Petição")
+    OUTREACHES = "advocacy_campaigns", _("Pressão")
 
-    title = models.CharField(verbose_name="Title of campaign", max_length=200)
+
+class Campaign(models.Model):
+    title = models.CharField(verbose_name=_("nome da campanha"), max_length=200)
 
     resource_name = models.CharField(
-        verbose_name="API Resource name", max_length=50, choices=RESOURCES
+        verbose_name=_("tipo de campanha"),
+        max_length=50,
+        choices=CampaignOptions.choices,
     )
 
-    api_response_json = models.JSONField(verbose_name="API Response JSON")
+    an_response_json = models.JSONField(verbose_name=_("resposta da action network"))
 
-    action_group = models.ForeignKey(
-        settings.ACTIONNETWORK_GROUPMODEL, on_delete=models.CASCADE
-    )
+    action_group = models.ForeignKey(ActionGroup, on_delete=models.CASCADE)
+
+    # Used only advocacy campaigns
+    target_groups = models.ManyToManyField(TargetGroup, blank=True)
 
     objects = CampaignManager()
+
+    class Meta:
+        verbose_name = _("campanha")
+        verbose_name_plural = _("campanhas")
 
     def __str__(self):
         return self.title
 
     def get_endpoint(self):
-        return self.api_response_json["_links"]["self"]["href"]
-
-    def get_url_type(self):
-        return self.resource_name.replace("fundraising_pages", "donations").replace(
-            "petitions", "email_pressures"
-        )
-
-
-class Person(models.Model):
-    given_name = models.CharField(verbose_name="Given name", max_length=80)
-
-    family_name = models.CharField(
-        verbose_name="Family name", max_length=120, null=True, blank=True
-    )
-
-    def __str__(self):
-        return self.full_name()
-
-    def full_name(self):
-        return f"{self.given_name} {self.family_name}"
-
-
-class EmailAddress(models.Model):
-    address = models.EmailField(verbose_name="Address", unique=True)
-
-    person = models.ForeignKey(
-        Person, on_delete=models.CASCADE, related_name="email_addresses"
-    )
-
-    def __str__(self):
-        return self.address
-
-
-class PhoneNumber(models.Model):
-    number = models.CharField(verbose_name="Number", max_length=15, unique=True)
-
-    person = models.ForeignKey(
-        Person, on_delete=models.CASCADE, related_name="phone_numbers"
-    )
-
-    def __str__(self):
-        return self.number
-
-
-class PostalAddress(models.Model):
-    address_lines = models.CharField(
-        verbose_name="Address line", max_length=200, blank=True
-    )
-
-    locality = models.CharField(verbose_name="Locality", max_length=80, blank=True)
-
-    region = models.CharField(verbose_name="Region", max_length=100, blank=True)
-
-    postal_code = models.CharField(
-        verbose_name="Postal code", max_length=30, blank=True
-    )
-
-    country = models.CharField(verbose_name="Country", max_length=30, blank=True)
-
-    person = models.ForeignKey(
-        Person, on_delete=models.CASCADE, related_name="postal_addresses"
-    )
-
-
-class CustomField(models.Model):
-    name = models.CharField(verbose_name="Name of field", max_length=50)
-
-    value = models.CharField(verbose_name="Value of field", max_length=150)
-
-    person = models.ForeignKey(
-        Person, on_delete=models.CASCADE, related_name="custom_fields"
-    )
+        return self.an_response_json["_links"]["self"]["href"]
 
 
 class ActionRecordManager(models.Manager):
@@ -159,12 +92,14 @@ class ActionRecordManager(models.Manager):
             raise InvalidInstanceModelException(
                 "Signature model request petitions campaign"
             )
-        
-        if self.model.__name__ == "Outreach" and campaign.resource_name != "advocacy_campaigns":
+
+        if (
+            self.model.__name__ == "Outreach"
+            and campaign.resource_name != "advocacy_campaigns"
+        ):
             raise InvalidInstanceModelException(
                 "Outreach model request advocacy campaign"
             )
-
 
         # Instance of person
         person = kwargs.get("person")
@@ -244,25 +179,11 @@ class ActionRecordManager(models.Manager):
         action = super(ActionRecordManager, self).create(
             person=person,
             campaign=campaign,
-            api_response_json=response.json(),
+            an_response_json=response.json(),
             **kwargs,
         )
 
-        # self.__log_history(action)
-
         return action
-
-    # def __log_history(self, instance):
-    #     user_api = User.objects.get(username="api")
-
-    #     LogEntry.objects.log_action(
-    #         user_id=user_api.id,
-    #         content_type_id=ContentType.objects.get_for_model(instance.person).pk,
-    #         object_id=instance.person.pk,
-    #         object_repr=str(instance.person),
-    #         action_flag=ADDITION,
-    #         change_message=f"ADD {instance.campaign.resource_name} TO {instance.campaign.title} // {instance.uuid()}",
-    #     )
 
     def __get_resource_name(self):
         if issubclass(self.model, SubmissionInterface):
@@ -327,7 +248,7 @@ class ActionRecordManager(models.Manager):
             data=json.dumps(payload),
             headers={
                 "Content-Type": "application/json",
-                "OSDI-API-Token": campaign.action_group.api_secret_key,
+                "OSDI-API-Token": campaign.action_group.an_secret_key,
             },
         )
 
@@ -337,18 +258,20 @@ class ActionRecordManager(models.Manager):
         raise InvalidRequestAPIException(response.text)
 
 
-class ActionRecordModel(models.Model):
+class ActionRecord(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-    created_date = models.DateTimeField(verbose_name="Created date")
+    created_date = models.DateTimeField(verbose_name=_("data de criação"))
 
     # add_tags = ArrayField(models.CharField(verbose_name="Add tags", max_length=30))
 
     # remove_tags = ArrayField(models.CharField(verbose_name="Remove tags", max_length=30))
 
-    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
+    campaign = models.ForeignKey(
+        Campaign, on_delete=models.CASCADE, verbose_name=_("campanha")
+    )
 
-    api_response_json = models.JSONField(verbose_name="API Response JSON")
+    an_response_json = models.JSONField(verbose_name=_("resposta da action network"))
 
     class Meta:
         abstract = True
@@ -360,35 +283,25 @@ class ActionRecordModel(models.Model):
         return uuid_text.replace("action_network:", "")
 
 
-class ActionGroupInterface(models.Model):
-    name = models.CharField(verbose_name="Name", max_length=150)
-
-    api_secret_key = models.CharField(verbose_name="API Secret Key", max_length=200)
-
-    class Meta:
-        abstract = True
-
-    def __str__(self):
-        return self.name
-
-
-class SubmissionInterface(ActionRecordModel):
+class SubmissionInterface(ActionRecord):
     class Meta:
         abstract = True
 
 
-class SignatureInterface(ActionRecordModel):
+class SignatureInterface(ActionRecord):
     class Meta:
         abstract = True
 
 
-class DonationInterface(ActionRecordModel):
-    amount = models.DecimalField(verbose_name="Amount", decimal_places=2, max_digits=10)
+class DonationInterface(ActionRecord):
+    amount = models.DecimalField(
+        verbose_name=_("valor"), decimal_places=2, max_digits=10
+    )
 
     class Meta:
         abstract = True
 
 
-class OutreachInterface(ActionRecordModel):
+class OutreachInterface(ActionRecord):
     class Meta:
         abstract = True

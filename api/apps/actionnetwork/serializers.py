@@ -3,7 +3,7 @@ from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Campaign, Person
+from .models import Campaign, Person, PostalAddress
 
 
 class CampaignSerializer(serializers.ModelSerializer):
@@ -38,9 +38,18 @@ class CampaignSerializer(serializers.ModelSerializer):
         return reverse(instance.resource_name, kwargs={"campaign_id": instance.id}, request=request)
 
 
+class PostalAddressSerializer(serializers.ModelField):
+
+    class Meta:
+        model = PostalAddress
+
+
+
 class PersonSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(required=False)
     phone_number = serializers.CharField(required=False)
+
+    postal_address = PostalAddressSerializer
 
     class Meta:
         model = Person
@@ -57,7 +66,7 @@ class ActionSerializerMixin(serializers.ModelSerializer):
     person = PersonSerializer()
 
     class Meta:
-        exclude = ['api_response_json', 'campaign', 'created_date']
+        exclude = ['an_response_json', 'campaign', 'created_date']
 
     def create(self, validated_data):
         person_data = validated_data.pop('person')

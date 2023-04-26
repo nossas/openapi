@@ -4,8 +4,8 @@ from rest_framework import authentication, status, permissions
 from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404, CreateAPIView, ListAPIView
 
-from apps.auth2.authentication import UsersGroupAuthentication
-from apps.auth2.permissions import UsersGroupAuthenticated
+from apps.auth2.authentication import OpenAPIAuthentication
+from apps.auth2.permissions import OpenAPIAuthenticated
 
 from .models import Campaign
 from .serializers import CampaignSerializer
@@ -13,27 +13,38 @@ from .serializers import CampaignSerializer
 
 class ActionCreateApiView(CreateAPIView):
     authentication_classes = [
-        UsersGroupAuthentication,
+        OpenAPIAuthentication,
         authentication.BasicAuthentication,
         authentication.SessionAuthentication,
-        authentication.TokenAuthentication
+        authentication.TokenAuthentication,
     ]
-    permission_classes = [UsersGroupAuthenticated, ]
+    permission_classes = [
+        OpenAPIAuthenticated,
+    ]
 
-    def __get_campaign(self, group):
-        return get_object_or_404(Campaign, pk=self.kwargs.get('campaign_id'), action_group=group)
+    def validate(self, request):
+        self.kwargs.update(
+            {
+                "campaign": get_object_or_404(
+                    Campaign,
+                    pk=self.kwargs.get("campaign_id"),
+                    action_group=request.openapi_group,
+                )
+            }
+        )
 
     def post_create(self, instance, request, headers):
-        return Response({'action_id': instance.id}, status=status.HTTP_201_CREATED, headers=headers)
+        return Response(
+            {"action_id": instance.id}, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def create(self, request, *args, **kwargs):
-        
-        campaign = self.__get_campaign(request.openapi_group)
+        self.validate(request)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        instance = serializer.save(campaign=campaign)
+        instance = serializer.save(campaign=self.kwargs.get("campaign"))
 
         # TODO: padronizar resposta de ação
         headers = self.get_success_headers(request.data)
@@ -45,8 +56,11 @@ class CampaignAPIListView(ListAPIView):
     """
     Documentando esse endpoint API
     """
+
     serializer_class = CampaignSerializer
-    permission_classes = [permissions.IsAuthenticated, ]
+    permission_classes = [
+        permissions.IsAuthenticated,
+    ]
 
     def get_queryset(self, *args, **kwargs):
         queryset = Campaign.objects

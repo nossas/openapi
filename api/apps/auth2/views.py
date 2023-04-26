@@ -1,41 +1,40 @@
-from django.db.models import Prefetch
+# from django.db.models import Prefetch
 
-from rest_framework import serializers
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+# from rest_framework import serializers
+# from rest_framework.generics import ListAPIView
+# from rest_framework.permissions import IsAuthenticated
 
-from apps.actionnetwork.models import Campaign
-from apps.actionnetwork.serializers import CampaignSerializer
+# from apps.actionnetwork.serializers import CampaignSerializer
 
-from .models import UsersGroup
-
-
-class UsersGroupSerializer(serializers.ModelSerializer):
-    campaign_set = CampaignSerializer(many=True, exclude=["group"])
-
-    class Meta:
-        model = UsersGroup
-        fields = ["name", "token", "campaign_set"]
+# from .models import UsersGroup
 
 
-class UsersGroupListAPIView(ListAPIView):
-    serializer_class = UsersGroupSerializer
-    permission_classes = [
-        IsAuthenticated,
-    ]
+# class UsersGroupSerializer(serializers.ModelSerializer):
+#     campaign_set = CampaignSerializer(many=True, exclude=["group"])
 
-    def get_queryset(self, *args, **kwargs):
-        campaign_resource_name = self.request.query_params.get("campaign_resource_name")
-        queryset = UsersGroup.objects
+#     class Meta:
+#         model = UsersGroup
+#         fields = ["name", "token", "campaign_set"]
 
-        if campaign_resource_name:
-            campaign_set_prefetched = Prefetch(
-                "campaign_set",
-                Campaign.objects.filter(resource_name=campaign_resource_name),
-            )
-            queryset = queryset.prefetch_related(campaign_set_prefetched)
 
-        if not self.request.user.is_superuser:
-            return queryset.filter(users__in=[self.request.user])
+# class UsersGroupListAPIView(ListAPIView):
+#     serializer_class = UsersGroupSerializer
+#     permission_classes = [
+#         IsAuthenticated,
+#     ]
 
-        return queryset.all()
+#     def get_queryset(self, *args, **kwargs):
+#         campaign_resource_name = self.request.query_params.get("campaign_resource_name")
+#         queryset = UsersGroup.objects
+
+#         if campaign_resource_name:
+#             campaign_set_prefetched = Prefetch(
+#                 "campaign_set",
+#                 Campaign.objects.filter(resource_name=campaign_resource_name),
+#             )
+#             queryset = queryset.prefetch_related(campaign_set_prefetched)
+
+#         if not self.request.user.is_superuser:
+#             return queryset.filter(users__in=[self.request.user])
+
+#         return queryset.all()

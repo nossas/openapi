@@ -18,8 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 
 from apps.actionnetwork.views import CampaignAPIListView
-from apps.auth2.views import UsersGroupListAPIView
-from apps.phone.views import PhonePressureCreateAPIView
+# from apps.auth2.views import UsersGroupListAPIView
+from apps.phone.views import PhonePressureCreateAPIView, TargetPhoneListAPIView
 
 
 urlpatterns = [
@@ -31,7 +31,10 @@ urlpatterns = [
     
     # Campaigns URL
     path('api/campaigns/', CampaignAPIListView.as_view(), name="campaigns"),
+    
     path("api/campaigns/<int:campaign_id>/phone/", PhonePressureCreateAPIView.as_view(), name="phone"),
+    path("api/campaigns/<int:campaign_id>/phone/targets/", TargetPhoneListAPIView.as_view(), name="targets_phone"),
+    
 
-    path('api/groups/', UsersGroupListAPIView.as_view(), name="usersgroups"),
+    # path('api/groups/', UsersGroupListAPIView.as_view(), name="usersgroups"),
 ]
