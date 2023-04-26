@@ -110,8 +110,6 @@ DATABASES = {
 
 # Customize autentication app
 
-ACTIONNETWORK_GROUPMODEL = "auth2.UsersGroup"
-
 AUTH_USER_MODEL = "auth2.User"
 
 REST_FRAMEWORK = {
@@ -170,11 +168,5 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Phone apps configuration
-
-TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
-
-TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
-
-TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
 
 TWILIO_WEBHOOK_URL = env('TWILIO_WEBHOOK_URL')
