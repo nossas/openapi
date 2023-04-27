@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from ..exceptions import InvalidRequestAPIException, InvalidInstanceModelException, FieldException
 
 from .peoples import Person, EmailAddress, PhoneNumber, PostalAddress
-from .details import ActionGroup, TargetGroup
+from .details import ActionGroup, TargetGroup, Tag
 
 
 class CampaignManager(models.Manager):
@@ -57,6 +57,8 @@ class Campaign(models.Model):
 
     action_group = models.ForeignKey(ActionGroup, on_delete=models.CASCADE)
 
+    tags = models.ManyToManyField(Tag, blank=True)
+
     # Used only advocacy campaigns
     target_groups = models.ManyToManyField(TargetGroup, blank=True)
 
@@ -74,7 +76,7 @@ class Campaign(models.Model):
 
 
 class ActionRecordManager(models.Manager):
-    def create(self, campaign, add_tags=[], remove_tags=[], **kwargs):
+    def create(self, campaign, **kwargs):
         # Raise Incorrect Action Model
         if (
             self.model.__name__ == "Donation"
@@ -145,7 +147,8 @@ class ActionRecordManager(models.Manager):
             if postal_address:
                 PostalAddress.objects.create(**postal_address, person=person)
 
-
+        if campaign.tags.exists():
+            person.tags.set(campaign.tags.all())
 
         # TODO: Mudar forma alterar implementação a partir dos tipos de ação
         if self.__get_resource_name() == "donations":
@@ -158,21 +161,21 @@ class ActionRecordManager(models.Manager):
             if not created_date:
                 raise FieldException("created_date is required")
 
-            response = self.__request_action_network_api(
+            response = self.request_action_network_api(
                 person=person,
                 campaign=campaign,
-                add_tags=add_tags,
-                remove_tags=remove_tags,
+                add_tags=[x.label for x in campaign.tags.all()],
+                # remove_tags=remove_tags,
                 # Params only used to donations
                 recipients=[dict(display_name=campaign.title, amount=float(amount))],
                 created_date=created_date.strftime("%Y-%m-%dT%H:%M:%SZ"),
             )
         else:
-            response = self.__request_action_network_api(
+            response = self.request_action_network_api(
                 person=person,
                 campaign=campaign,
-                add_tags=add_tags,
-                remove_tags=remove_tags,
+                add_tags=[x.label for x in campaign.tags.all()],
+                # remove_tags=remove_tags,
             )
 
         # Call super create method for instance
@@ -199,7 +202,7 @@ class ActionRecordManager(models.Manager):
                 f"{self.model.__name__} should be implement an interface"
             )
 
-    def __request_action_network_api(
+    def request_action_network_api(
         self, person, campaign, add_tags=[], remove_tags=[], **kwargs
     ):
         resource_name = self.__get_resource_name()

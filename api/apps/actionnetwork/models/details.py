@@ -103,3 +103,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = _("tag")
         verbose_name_plural = _("tags")
+        unique_together = ('slug', 'action_group')
+
+    def __str__(self):
+        return self.label

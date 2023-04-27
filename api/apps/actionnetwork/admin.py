@@ -1,4 +1,8 @@
+from typing import Any, Optional
 from django.contrib import admin
+from django.db.models.fields.related import RelatedField
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
 from .models import (
     ActionGroup,
@@ -70,14 +74,26 @@ class PersonAdmin(admin.ModelAdmin):
 
 class CampaignAdmin(admin.ModelAdmin):
     list_display = ("title", "resource_name")
-    fields = ("title", "action_group", "resource_name", "an_response_json")
+    fields = ("title", "action_group", "resource_name")
     readonly_fields = ("an_response_json",)
+    
+    filter_horizontal = ("tags", )
 
     def get_fields(self, request, obj=None):
         if obj and obj.resource_name == CampaignOptions.OUTREACHES:
-            return self.fields + ('target_groups', )
-        
-        return super().get_fields(request, obj)
+            return self.fields + ('tags', 'target_groups', )
+        elif obj:
+            return self.fields + ('tags', )
+
+        return super(CampaignAdmin, self).get_fields(request, obj)
+
+    def get_form(self, request, obj, change, **kwargs):
+        form = super(CampaignAdmin, self).get_form(request, obj, change, **kwargs)
+
+        if obj and 'tags' in form.base_fields:
+            form.base_fields['tags'].queryset = Tag.objects.filter(action_group=obj.action_group)
+
+        return form
 
     def save_model(self, request, obj, form, change):
         if not change:
