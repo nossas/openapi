@@ -134,6 +134,18 @@ class ActionRecordManager(models.Manager):
             postal_address = kwargs.pop("postal_address", None)
             if postal_address:
                 PostalAddress.objects.create(**postal_address, person=person)
+        else:
+            if not person.email_addresses.filter(address=email_address).exists():
+                EmailAddress.objects.create(address=email_address, person=person)
+            
+            if not person.phone_numbers.filter(number=phone_number).exists():
+                PhoneNumber.objects.create(number=phone_number, person=person)
+            
+            postal_address = kwargs.pop("postal_address", None)
+            if postal_address:
+                PostalAddress.objects.create(**postal_address, person=person)
+
+
 
         # TODO: Mudar forma alterar implementação a partir dos tipos de ação
         if self.__get_resource_name() == "donations":
@@ -267,7 +279,7 @@ class ActionRecord(models.Model):
     objects = ActionRecordManager()
 
     def uuid(self):
-        uuid_text = self.api_response_json["identifiers"][0]
+        uuid_text = self.an_response_json["identifiers"][0]
         return uuid_text.replace("action_network:", "")
 
 

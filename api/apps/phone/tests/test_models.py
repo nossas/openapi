@@ -3,12 +3,13 @@ import requests_mock
 
 from model_bakery import baker
 
-from apps.actionnetwork.models import Campaign
+from apps.actionnetwork.models import Campaign, Person
 from apps.actionnetwork.models.campaigns import ActionRecordManager
 from apps.phone.models import PhonePressure
 
 
-def test_create_person_postal_address(db, requests_mock):
+@pytest.fixture
+def campaign(db, requests_mock):
     campaign = baker.make(
         Campaign,
         resource_name="form",
@@ -17,6 +18,10 @@ def test_create_person_postal_address(db, requests_mock):
 
     requests_mock.post("http://localhost/outreaches", status_code=200, json={})
 
+    return campaign
+
+
+def test_create_person_postal_address(db, campaign):
     objects = ActionRecordManager()
     objects.model = PhonePressure
 
@@ -43,3 +48,25 @@ def test_create_person_postal_address(db, requests_mock):
     assert postal_address.region == expected_value["region"]
     assert postal_address.postal_code == expected_value["postal_code"]
     assert postal_address.country == expected_value["country"]
+
+
+def test_create_person_phone_and_email(db, campaign):
+    objects = ActionRecordManager()
+    objects.model = PhonePressure
+
+    email = "test@domain.local"
+    phone = "+5521999998888"
+
+    kwargs = {
+        "given_name": "Test",
+        "phone_number": phone,
+        "email_address": email
+    }
+
+    instance = objects.create(campaign=campaign, **kwargs)
+
+    person1 = Person.objects.filter(email_addresses__address=email).first()
+    person2 = Person.objects.filter(phone_numbers__number=phone).first()
+
+    assert instance.person == person1
+    assert instance.person == person2

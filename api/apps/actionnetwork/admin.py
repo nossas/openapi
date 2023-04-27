@@ -27,19 +27,23 @@ class ReadOnlyMixin(object):
 class EmailAddressInline(admin.TabularInline):
     model = EmailAddress
     readonly_fields = ('address', )
+    extra = 0
 
 
 class PhoneNumberInline(ReadOnlyMixin, admin.TabularInline):
     model = PhoneNumber
     readonly_fields = ("number",)
+    extra = 0
 
 
 class PostalAddressInline(ReadOnlyMixin, admin.StackedInline):
     model = PostalAddress
+    extra = 0
 
 
 class CustomFieldInline(admin.TabularInline):
     model = CustomField
+    extra = 0
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -103,7 +107,6 @@ class ActionRecordAdmin(admin.ModelAdmin):
 
     @admin.display(description="Person UUID")
     def person__uuid(self, obj):
-        # import ipdb;ipdb.set_trace()
         # return obj.api_response_json["_links"]["osdi:person"].split("/")[-1]
         return "asdijaid"
 

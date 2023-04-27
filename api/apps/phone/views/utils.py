@@ -3,7 +3,6 @@ from django.urls import reverse
 from twilio.rest import Client
 from apps.actionnetwork.models import IntegrationOptions
 
-from ..conf import settings
 from ..models import Call
 
 
