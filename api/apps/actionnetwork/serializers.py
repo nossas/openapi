@@ -48,16 +48,16 @@ class CampaignSerializer(serializers.ModelSerializer):
             return {"total": 0}
 
 
-class PostalAddressSerializer(serializers.ModelField):
+class PostalAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostalAddress
+        exclude = ["person", ]
 
 
 class PersonSerializer(serializers.ModelSerializer):
     email_address = serializers.EmailField(required=False)
     phone_number = serializers.CharField(required=False)
-
-    postal_address = PostalAddressSerializer
+    postal_address = PostalAddressSerializer(required=False)
 
     class Meta:
         model = Person
@@ -80,6 +80,7 @@ class ActionSerializerMixin(serializers.ModelSerializer):
 
     def create(self, validated_data):
         person_data = validated_data.pop("person")
+
         ## TODO: Melhorar serialização de objetos
         targets = validated_data.pop("targets")
 

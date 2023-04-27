@@ -125,3 +125,38 @@ def test_create_view_person_exists_phone_and_email(db, prepare_campaign):
     person2 = Person.objects.filter(phone_numbers__number=phone).first()
 
     assert person1 == person2
+
+
+def test_create_view_person_exists_phone_and_email_with_postal_address(db, prepare_campaign):
+    campaign = prepare_campaign()
+    phone = "+5521999998888"
+
+    person_obj = baker.make(Person)
+    baker.make(PhoneNumber, number=phone, person=person_obj)
+
+    email = "test2@domain.local"
+    payload = {
+        "person": {
+            "given_name": "Test",
+            "phone_number": phone,
+            "email_address": email,
+            "postal_address": {
+                "locality": "Belo Horizonte",
+                "region": "MG"
+            }
+
+        },
+        "targets": [1],
+    }
+
+    client.post(
+        f"/api/campaigns/{campaign.id}/phone/",
+        data=payload,
+        headers={"OpenAPI-Token": campaign.action_group.openapi_token},
+        format="json",
+    )
+
+    postal_address = Person.objects.filter(phone_numbers__number=phone).first().postal_addresses.first()
+
+    assert postal_address.locality == "Belo Horizonte"
+    assert postal_address.region == "MG"
