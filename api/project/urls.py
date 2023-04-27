@@ -17,9 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from apps.actionnetwork.views import CampaignAPIListView
+from apps.actionnetwork.views import CampaignAPIDetailView
 # from apps.auth2.views import UsersGroupListAPIView
-from apps.phone.views import PhonePressureCreateAPIView, TargetPhoneListAPIView
+from apps.phone.views import PhonePressureCreateAPIView
 
 
 urlpatterns = [
@@ -30,10 +30,11 @@ urlpatterns = [
     path("api/phone/call/", include("apps.phone.urls")),
     
     # Campaigns URL
-    path('api/campaigns/', CampaignAPIListView.as_view(), name="campaigns"),
-    
+    # path('api/campaigns/', CampaignAPIListView.as_view(), name="campaigns"),
+    path('api/campaigns/<int:pk>/', CampaignAPIDetailView.as_view(), name="campaigns-detail"),
+
     path("api/campaigns/<int:campaign_id>/phone/", PhonePressureCreateAPIView.as_view(), name="phone"),
-    path("api/campaigns/<int:campaign_id>/phone/targets/", TargetPhoneListAPIView.as_view(), name="targets_phone"),
+    # path("api/campaigns/<int:campaign_id>/phone/targets/", TargetPhoneListAPIView.as_view(), name="phone-targets"),
     
 
     # path('api/groups/', UsersGroupListAPIView.as_view(), name="usersgroups"),

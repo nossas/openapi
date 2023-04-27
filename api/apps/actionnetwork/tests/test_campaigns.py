@@ -4,6 +4,7 @@ import requests_mock
 from model_bakery import baker
 
 from apps.actionnetwork.models import Campaign, Person, ActionGroup
+from apps.actionnetwork.models.campaigns import ActionRecordManager, SubmissionInterface
 from apps.actionnetwork.exceptions import InvalidRequestAPIException
 
 

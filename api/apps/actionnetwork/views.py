@@ -2,7 +2,7 @@ from django.utils.timezone import now
 
 from rest_framework import authentication, status, permissions
 from rest_framework.response import Response
-from rest_framework.generics import get_object_or_404, CreateAPIView, ListAPIView
+from rest_framework.generics import get_object_or_404, CreateAPIView, ListAPIView, RetrieveAPIView
 
 from apps.auth2.authentication import OpenAPIAuthentication
 from apps.auth2.permissions import OpenAPIAuthenticated
@@ -11,7 +11,7 @@ from .models import Campaign
 from .serializers import CampaignSerializer
 
 
-class ActionCreateApiView(CreateAPIView):
+class OpenAPIAuthMixin(object):
     authentication_classes = [
         OpenAPIAuthentication,
         authentication.BasicAuthentication,
@@ -22,6 +22,8 @@ class ActionCreateApiView(CreateAPIView):
         OpenAPIAuthenticated,
     ]
 
+
+class ActionCreateApiView(OpenAPIAuthMixin, CreateAPIView):
     def validate(self, request):
         self.kwargs.update(
             {
@@ -68,3 +70,10 @@ class CampaignAPIListView(ListAPIView):
             return queryset.filter(action_group__users__in=[self.request.user])
 
         return queryset.all()
+
+
+
+class CampaignAPIDetailView(OpenAPIAuthMixin, RetrieveAPIView):
+    """"""
+    serializer_class = CampaignSerializer
+    queryset = Campaign.objects

@@ -3,21 +3,28 @@ from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Campaign, Person, PostalAddress
+from .models import Campaign, Person, PostalAddress, Target
+
+
+class TargetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Target
+        fields = ['id', 'name']
 
 
 class CampaignSerializer(serializers.ModelSerializer):
     group = serializers.CharField(source="action_group.name")
-    url = serializers.SerializerMethodField()
+    # details = ActionDetails()
+    details = serializers.SerializerMethodField()
 
     class Meta:
         model = Campaign
-        fields = ['title', 'resource_name', 'group', 'url']
+        fields = ["title", "resource_name", "group", "details"]
 
     def __init__(self, *args, **kwargs):
         # Instantiate the superclass normally
 
-        exclude = kwargs.pop('exclude', None)
+        exclude = kwargs.pop("exclude", None)
 
         # Instantiate the superclass normally
         super(CampaignSerializer, self).__init__(*args, **kwargs)
@@ -27,22 +34,23 @@ class CampaignSerializer(serializers.ModelSerializer):
             exclude = set(exclude)
             for field_name in exclude:
                 self.fields.pop(field_name)
-    
-    def get_url(self, instance):
-        request = self.context.get('request')
 
-        if not request:
-            # When use serializer in shell command hasnt request 
-            return 'shell'
-        
-        return reverse(instance.resource_name, kwargs={"campaign_id": instance.id}, request=request)
+    def get_details(self, instance):
+        if instance.resource_name == "advocacy_campaigns":
+            targets = Target.objects.filter(
+                targetgroup__in=instance.target_groups.all()
+            ).values("id", "name")
+            return {
+                "total": instance.phonepressure_set.count(),
+                "targets": TargetSerializer(targets, many=True).data
+            }
+        else:
+            return {"total": 0}
 
 
 class PostalAddressSerializer(serializers.ModelField):
-
     class Meta:
         model = PostalAddress
-
 
 
 class PersonSerializer(serializers.ModelSerializer):
@@ -53,12 +61,14 @@ class PersonSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Person
-        fields = '__all__'
-    
+        fields = "__all__"
+
     def validate(self, data):
-        if not data.get('email_address') and not data.get('phone_number'):
-            raise serializers.ValidationError("email_address or phone_number is required.")
-        
+        if not data.get("email_address") and not data.get("phone_number"):
+            raise serializers.ValidationError(
+                "email_address or phone_number is required."
+            )
+
         return data
 
 
@@ -66,17 +76,19 @@ class ActionSerializerMixin(serializers.ModelSerializer):
     person = PersonSerializer()
 
     class Meta:
-        exclude = ['an_response_json', 'campaign', 'created_date']
+        exclude = ["an_response_json", "campaign", "created_date"]
 
     def create(self, validated_data):
-        person_data = validated_data.pop('person')
+        person_data = validated_data.pop("person")
         ## TODO: Melhorar serialização de objetos
-        targets = validated_data.pop('targets')
-        
-        instance = self.Meta.model.objects.create(**validated_data, **person_data, created_date=now())
+        targets = validated_data.pop("targets")
+
+        instance = self.Meta.model.objects.create(
+            **validated_data, **person_data, created_date=now()
+        )
 
         ## TODO: Melhorar serialização de objetos
-        if hasattr(instance, 'targets') and targets:
+        if hasattr(instance, "targets") and targets:
             instance.targets.set(targets)
 
         return instance

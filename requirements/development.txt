@@ -4,6 +4,7 @@ model_bakery
 pytest
 pytest-cov
 pytest-django
+pytest-mock
 ipdb
 ipython
 django-cors-headers

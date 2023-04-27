@@ -3,6 +3,7 @@ import json
 
 from django.db import models
 from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from ..exceptions import InvalidRequestAPIException, InvalidInstanceModelException, FieldException
@@ -102,26 +103,13 @@ class ActionRecordManager(models.Manager):
             )
 
         # Instance of person
-        person = kwargs.get("person")
-        if person:
-            del kwargs["person"]
+        person = kwargs.pop("person", None)
 
         # Fields to create or get person instance
-        given_name = kwargs.get("given_name")
-        if given_name:
-            del kwargs["given_name"]
-
-        family_name = kwargs.get("family_name")
-        if family_name:
-            del kwargs["family_name"]
-
-        email_address = kwargs.get("email_address")
-        if email_address:
-            del kwargs["email_address"]
-
-        phone_number = kwargs.get("phone_number")
-        if phone_number:
-            del kwargs["phone_number"]
+        given_name = kwargs.pop("given_name", None)
+        family_name = kwargs.pop("family_name", None)
+        email_address = kwargs.pop("email_address", None)
+        phone_number = kwargs.pop("phone_number", None)
 
         if not person and not email_address and not phone_number:
             raise FieldException("person or email_address or phone_number is required")
@@ -143,7 +131,7 @@ class ActionRecordManager(models.Manager):
             if phone_number:
                 PhoneNumber.objects.create(number=phone_number, person=person)
 
-            postal_address = kwargs.get("postal_address")
+            postal_address = kwargs.pop("postal_address", None)
             if postal_address:
                 PostalAddress.objects.create(**postal_address, person=person)
 
@@ -261,7 +249,7 @@ class ActionRecordManager(models.Manager):
 class ActionRecord(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-    created_date = models.DateTimeField(verbose_name=_("data de criação"))
+    created_date = models.DateTimeField(verbose_name=_("data de criação"), default=timezone.now)
 
     # add_tags = ArrayField(models.CharField(verbose_name="Add tags", max_length=30))
 
