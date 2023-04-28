@@ -11,6 +11,7 @@ from apps.actionnetwork.models import (
     Person,
     PhoneNumber,
     Integration,
+    IntegrationOptions,
     Target
 )
 
@@ -50,7 +51,7 @@ def test_create_phone_view_twilio_not_setup(db):
 @pytest.fixture
 def prepare_campaign(db, requests_mock):
     action_group = baker.make(ActionGroup)
-    baker.make(Integration, action_group=action_group, config={
+    baker.make(Integration, action_group=action_group, name=IntegrationOptions.TWILIO, config={
         "AUTH_TOKEN": "x",
         "ACCOUNT_SID": "x",
         "PHONE_NUMBER": "+55999998888"

@@ -45,21 +45,26 @@ class ActionGroup(models.Model):
 
 class IntegrationOptions(models.TextChoices):
     TWILIO = "twilio", "Twilio"
+    SENDGRID = "sendgrid", "Sendgrid"
+
 
 class Integration(models.Model):
-    name = models.CharField(verbose_name=_("nome da integração"), max_length=100, choices=IntegrationOptions.choices)
+    name = models.CharField(
+        verbose_name=_("nome da integração"),
+        max_length=100,
+        choices=IntegrationOptions.choices,
+    )
     config = models.JSONField(verbose_name=_("configuração"))
     action_group = models.ForeignKey(ActionGroup, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _("integração")
         verbose_name_plural = _("integrações")
-    
 
     def get(self, config_name, default_value=None):
         if config_name in self.config:
             return self.config[config_name]
-        
+
         return default_value
 
 
@@ -77,7 +82,7 @@ class Target(models.Model):
     class Meta:
         verbose_name = _("alvo")
         verbose_name_plural = _("alvos")
-    
+
     def __str__(self):
         return self.name
 
@@ -89,7 +94,7 @@ class TargetGroup(models.Model):
     class Meta:
         verbose_name = _("grupo de alvos")
         verbose_name_plural = _("grupos de alvos")
-    
+
     def __str__(self):
         return self.name
 
@@ -103,7 +108,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = _("tag")
         verbose_name_plural = _("tags")
-        unique_together = ('slug', 'action_group')
+        unique_together = ("slug", "action_group")
 
     def __str__(self):
         return self.label

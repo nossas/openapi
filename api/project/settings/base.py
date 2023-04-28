@@ -63,10 +63,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     "rest_framework",
+    "tinymce",
     # My Apps
     "apps.actionnetwork",
     "apps.auth2",
     "apps.phone",
+    "apps.email",
 ]
 
 MIDDLEWARE = [

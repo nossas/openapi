@@ -24,6 +24,8 @@ from apps.phone.views import PhonePressureCreateAPIView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('tinymce/', include('tinymce.urls')),
+
     path("api-auth/", include("rest_framework.urls")),
     
     # Phone Webhook URL

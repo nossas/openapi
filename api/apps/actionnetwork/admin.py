@@ -1,8 +1,11 @@
-from typing import Any, Optional
+# from typing import Any, Optional
 from django.contrib import admin
-from django.db.models.fields.related import RelatedField
-from django.db.models.query import QuerySet
-from django.http.request import HttpRequest
+from django.db import models
+# from django.db.models.fields.related import RelatedField
+# from django.db.models.query import QuerySet
+# from django.http.request import HttpRequest
+
+from tinymce.widgets import TinyMCE
 
 from .models import (
     ActionGroup,
@@ -16,7 +19,8 @@ from .models import (
     Target,
     TargetGroup,
     Tag,
-    Integration
+    Integration,
+    EmailTemplate
 )
 
 
@@ -179,6 +183,17 @@ class ActionGroupAdmin(admin.ModelAdmin):
         return super().save_model(request, obj, form, change)
 
 admin.site.register(ActionGroup, ActionGroupAdmin)
+
+
+class EmailTemplateAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.TextField: { "widget": TinyMCE(attrs={'cols': 80, 'rows': 30}) }
+    }
+
+    class Meta:
+        fields = "__all__"
+
+admin.site.register(EmailTemplate, EmailTemplateAdmin)
 
 
 admin.site.register(Tag)

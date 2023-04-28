@@ -3,6 +3,8 @@ from .peoples import Person, EmailAddress, PhoneNumber, PostalAddress, CustomFie
 from .campaigns import (
     Campaign,
     CampaignOptions,
+    EmailTemplate,
+    EmailTemplateOptions,
     ActionRecord,
     SubmissionInterface,
     DonationInterface,

@@ -10,3 +10,6 @@ django-filter
 markdown
 # Phone Pressure
 twilio
+# Email
+sendgrid
+django-tinymce

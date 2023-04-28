@@ -5,8 +5,13 @@ from django.db import models
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from tinymce.models import HTMLField
 
-from ..exceptions import InvalidRequestAPIException, InvalidInstanceModelException, FieldException
+from ..exceptions import (
+    InvalidRequestAPIException,
+    InvalidInstanceModelException,
+    FieldException,
+)
 
 from .peoples import Person, EmailAddress, PhoneNumber, PostalAddress
 from .details import ActionGroup, TargetGroup, Tag
@@ -75,6 +80,25 @@ class Campaign(models.Model):
         return self.an_response_json["_links"]["self"]["href"]
 
 
+class EmailTemplateOptions(models.TextChoices):
+    POST_ACTION = "post_action", _("Pós ação")
+
+
+class EmailTemplate(models.Model):
+    email_type = models.CharField(
+        verbose_name=_("tipo de email"),
+        max_length=30,
+        default=EmailTemplateOptions.POST_ACTION,
+        choices=EmailTemplateOptions.choices,
+    )
+    from_name = models.CharField(verbose_name=_("nome do remetente"), max_length=20)
+    from_email = models.EmailField(verbose_name=_("email do remetente"))
+    subject = models.CharField(verbose_name=_("assunto"), max_length=40)
+    content = models.TextField(verbose_name="conteúdo")
+
+    campaign = models.ForeignKey(Campaign, on_delete=models.CASCADE)
+
+
 class ActionRecordManager(models.Manager):
     def create(self, campaign, **kwargs):
         # Raise Incorrect Action Model
@@ -139,10 +163,10 @@ class ActionRecordManager(models.Manager):
         else:
             if not person.email_addresses.filter(address=email_address).exists():
                 EmailAddress.objects.create(address=email_address, person=person)
-            
+
             if not person.phone_numbers.filter(number=phone_number).exists():
                 PhoneNumber.objects.create(number=phone_number, person=person)
-            
+
             postal_address = kwargs.pop("postal_address", None)
             if postal_address:
                 PostalAddress.objects.create(**postal_address, person=person)
@@ -264,7 +288,9 @@ class ActionRecordManager(models.Manager):
 class ActionRecord(models.Model):
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
 
-    created_date = models.DateTimeField(verbose_name=_("data de criação"), default=timezone.now)
+    created_date = models.DateTimeField(
+        verbose_name=_("data de criação"), default=timezone.now
+    )
 
     # add_tags = ArrayField(models.CharField(verbose_name="Add tags", max_length=30))
 
