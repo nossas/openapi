@@ -21,7 +21,7 @@ class CampaignManager(models.Manager):
         # Request for Action Network API
         response = requests.post(
             f"https://actionnetwork.org/api/v2/{resource_name}/",
-            data={"title": title, "origin_system": "Bonde Actions API"},
+            data={"title": title, "origin_system": "Bonde"},
             headers={"OSDI-API-Token": action_group.an_secret_key},
         )
 
